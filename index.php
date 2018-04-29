@@ -1,5 +1,4 @@
 <?php
-echo "kkkkkkkkdfdsfsdf";
 include_once('./_common.php');
 
 define('_INDEX_', true);

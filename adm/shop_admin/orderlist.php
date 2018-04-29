@@ -142,6 +142,7 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
     <?php if($od_status == '준비' && $total_count > 0) { ?>
     <a href="./orderdelivery.php" id="order_delivery" class="ov_a">엑셀배송처리</a>
     <?php } ?>
+    <a href="./orderexcel.php" id="order_delivery" class="ov_order_input">주문등록</a>
 </div>
 
 <form name="frmorderlist" class="local_sch01 local_sch">
