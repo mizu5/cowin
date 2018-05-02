@@ -9,11 +9,11 @@ add_javascript('<script src="'.G5_JS_URL.'/shop.order.js"></script>', 0);
 
 // 모바일 주문인지
 $is_mobile_order = is_mobile();
-
 set_session("ss_direct", $sw_direct);
 // 장바구니가 비어있는가?
 if ($sw_direct) {
     $tmp_cart_id = get_session('ss_cart_direct');
+    echo $tmp_cart_id;
 }
 else {
     $tmp_cart_id = get_session('ss_cart_id');

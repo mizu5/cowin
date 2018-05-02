@@ -24,7 +24,7 @@ include_once(G5_PATH.'/head.sub.php');
         </p>
     </div>
 
-    <form name="fitemexcel" method="post" action="./orderexcelupdate.php" enctype="MULTIPART/FORM-DATA" autocomplete="off">
+    <form name="fitemexcel" method="post" action="./cateexcelupdate.php" enctype="MULTIPART/FORM-DATA" autocomplete="off">
 
     <div id="excelfile_upload">
         <label for="excelfile">파일선택</label>

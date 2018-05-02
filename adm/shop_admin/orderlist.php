@@ -143,6 +143,7 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
     <a href="./orderdelivery.php" id="order_delivery" class="ov_a">엑셀배송처리</a>
     <?php } ?>
     <a href="./orderexcel.php" id="order_delivery" class="ov_order_input">주문등록</a>
+    <a href="./cartexcel.php" id="order_cate" class="ov_order_input">카트주문등록</a>
 </div>
 
 <form name="frmorderlist" class="local_sch01 local_sch">
@@ -545,6 +546,12 @@ $(function(){
         window.open(this.href, "win_excel", opt);
         return false;
     });
+    // 엑셀배송처리창
+    $("#order_cate").on("click", function() {
+        var opt = "width=600,height=450,left=10,top=10";
+        window.open(this.href, "win_excel", opt);
+        return false;
+    });    
 });
 
 function set_date(today)

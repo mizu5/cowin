@@ -37,6 +37,8 @@ if($act == "buy")
     sql_query($sql);
 
     $fldcnt = count($_POST['it_id']);
+    echo "<br>".$fldcnt;
+    exit;
     for($i=0; $i<$fldcnt; $i++) {
         $ct_chk = $_POST['ct_chk'][$i];
         if($ct_chk) {
@@ -190,6 +192,8 @@ else // 장바구니에 담기
             if(!$row['io_type'])
                 $lst_count++;
         }
+//        print_r2($opt_list);
+        //exit;
 
         //--------------------------------------------------------
         //  재고 검사, 바로구매일 때만 체크
