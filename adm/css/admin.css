@@ -306,7 +306,7 @@ border-bottom: 5px solid black;}
 .local_ov {min-width:960px}
 
 .local_ov01 {position:relative;;margin: 10px 0;}
-.local_ov01 .ov_a {display:inline-block;margin:0 0 0 5px;padding:0 0 0 10px;border-left:1px solid #ccc;color:#ff3061}
+.local_ov01 .ov_a {display:inline-block;margin:0 0 0 5px;padding:0 0 0 10px;line-height:30px;height:30px;border-left:1px solid #ccc;color:#ff3061;background:#33333f;color:#fff;vertical-align:top;border-radius:5px;padding:0 7px}
 
 
 

@@ -104,9 +104,11 @@ if ($sort2 == "") $sort2 = "desc";
 
 $sql_common = " from {$g5['g5_shop_order_table']} $sql_search ";
 
-$sql = " select count(od_id) as cnt " . $sql_common;
+$sql = " select count(od_id) as cnt, sum(od_cart_count) as c_cnt " . $sql_common;
+echo $sql;
 $row = sql_fetch($sql);
 $total_count = $row['cnt'];
+$total_c_count = $row['c_cnt'];
 
 $rows = $config['cf_page_rows'];
 $total_page  = ceil($total_count / $rows);  // 전체 페이지 계산
@@ -139,6 +141,7 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
 <div class="local_ov01 local_ov">
     <?php echo $listall; ?>
     <span class="btn_ov01"><span class="ov_txt">전체 주문내역</span><span class="ov_num"> <?php echo number_format($total_count); ?>건</span></span>
+    <span class="btn_ov01"><span class="ov_txt">전체 주문상품</span><span class="ov_num"> <?php echo number_format($total_c_count); ?>건</span></span>
     <?php if($od_status == '준비' && $total_count > 0) { ?>
     <a href="./orderdelivery.php" id="order_delivery" class="ov_a">엑셀배송처리</a>
     <?php } ?>
