@@ -11,12 +11,15 @@ include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
 $where = array();
 
 $doc = strip_tags($doc);
+
 $sort1 = in_array($sort1, array('od_id', 'od_cart_price', 'od_receipt_price', 'od_cancel_price', 'od_misu', 'od_cash')) ? $sort1 : '';
 $sort2 = in_array($sort2, array('desc', 'asc')) ? $sort2 : 'desc';
+
 $sel_field = get_search_string($sel_field);
 if( !in_array($sel_field, array('od_id', 'mb_id', 'od_name', 'od_tel', 'od_hp', 'od_b_name', 'od_b_tel', 'od_b_hp', 'od_deposit_name', 'od_invoice')) ){   //검색할 필드 대상이 아니면 값을 제거
     $sel_field = '';
 }
+echo "sel_field:".$sel_field;
 $od_status = get_search_string($od_status);
 $search = get_search_string($search);
 if(! preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $fr_date) ) $fr_date = '';
@@ -105,7 +108,8 @@ if ($sort2 == "") $sort2 = "desc";
 $sql_common = " from {$g5['g5_shop_order_table']} $sql_search ";
 
 $sql = " select count(od_id) as cnt, sum(od_cart_count) as c_cnt " . $sql_common;
-echo $sql;
+
+
 $row = sql_fetch($sql);
 $total_count = $row['cnt'];
 $total_c_count = $row['c_cnt'];
@@ -121,7 +125,9 @@ $sql  = " select *,
            order by $sort1 $sort2
            limit $from_record, $rows ";
 $result = sql_query($sql);
-
+echo $sql;
+echo "<br>검색일자와 소셜마켓이 설정되어있을경우만 삭제할수있게 기능추가";
+echo "<br>위메프,티몬별 대량입력 구분";
 $qstr1 = "od_status=".urlencode($od_status)."&amp;od_settle_case=".urlencode($od_settle_case)."&amp;od_misu=$od_misu&amp;od_cancel_price=$od_cancel_price&amp;od_refund_price=$od_refund_price&amp;od_receipt_point=$od_receipt_point&amp;od_coupon=$od_coupon&amp;fr_date=$fr_date&amp;to_date=$to_date&amp;sel_field=$sel_field&amp;search=$search&amp;save_search=$search";
 if($default['de_escrow_use'])
     $qstr1 .= "&amp;od_escrow=$od_escrow";
@@ -146,7 +152,10 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
     <a href="./orderdelivery.php" id="order_delivery" class="ov_a">엑셀배송처리</a>
     <?php } ?>
     <a href="./orderexcel.php" id="order_delivery" class="ov_order_input">주문등록</a>
-    <a href="./cartexcel.php" id="order_cate" class="ov_order_input">카트주문등록</a>
+    <a href="./cartexcel.php" id="order_cate" class="ov_order_input">위메프 주문</a>
+    <a href="./cartexcel.php" id="order_cate" class="ov_order_input">티몬 주문</a>
+    <a href="./ordercondelete.php?<?php echo $qstr;?>" id="order_delete" class="ov_order_input">현재검색 삭제</a>
+   
 </div>
 
 <form name="frmorderlist" class="local_sch01 local_sch">
@@ -177,6 +186,13 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
 </form>
 
 <form class="local_sch03 local_sch">
+<div>
+    <strong>소셜마켓</strong>
+    <input type="checkbox" name="od_wm" value="Y" id="od_sm01" <?php echo get_checked($od_wm, 'Y'); ?>>
+    <label for="od_misu01">위메프</label>
+    <input type="checkbox" name="od_tm" value="Y" id="od_sm02" <?php echo get_checked($od_tm, 'Y'); ?>>
+    <label for="od_misu02">티몬</label>    
+</div>
 <div>
     <strong>주문상태</strong>
     <input type="radio" name="od_status" value="" id="od_status_all"    <?php echo get_checked($od_status, '');     ?>>

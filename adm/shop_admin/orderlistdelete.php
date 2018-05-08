@@ -2,7 +2,7 @@
 $sub_menu = '400400';
 include_once('./_common.php');
 
-//print_r2($_POST); exit;
+print_r2($_POST); exit;
 
 check_admin_token();
 

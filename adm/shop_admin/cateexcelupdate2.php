@@ -274,7 +274,7 @@ include_once(G5_PATH.'/head.sub.php');
     </dl>
 
     <div class="btn_win01 btn_win">
-        <button type="button" onclick="window.close();">창닫기</button>
+        <button type="button" onclick="opener.location.reload();window.close();">창닫기</button>
     </div>
 
 </div>
