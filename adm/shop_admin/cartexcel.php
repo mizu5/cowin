@@ -4,11 +4,26 @@ include_once('./_common.php');
 
 auth_check($auth[$sub_menu], "w");
 
-$g5['title'] = '엑셀파일로  주문 일괄 등록';
+
 include_once(G5_PATH.'/head.sub.php');
+
+//echo $sm;
 ?>
 
 <div class="new_win">
+<div style="text-align:center;padding:10px 0;">
+<?php 
+if($sm == "wmp"){
+echo "<img src='/img/wmp_logo.png'/>";
+$sm_title = "위메프";
+}else if($sm == "tm"){
+echo "<img src='/img/tm_logo.png'/>";
+$sm_title = "티몬";
+}
+
+$g5['title'] = $sm_title.'엑셀파일로  주문 일괄 등록';
+?>
+</div>
     <h1><?php echo $g5['title']; ?></h1>
 
     <div class="local_desc01 local_desc">
@@ -24,7 +39,7 @@ include_once(G5_PATH.'/head.sub.php');
         </p>
     </div>
 
-    <form name="fitemexcel" method="post" action="./cateexcelupdate2.php" enctype="MULTIPART/FORM-DATA" autocomplete="off">
+    <form name="fitemexcel" method="post" action="./cateexcelupdate2.php?sm=<?php echo $sm?>" enctype="MULTIPART/FORM-DATA" autocomplete="off">
 
     <div id="excelfile_upload">
         <label for="excelfile">파일선택</label>

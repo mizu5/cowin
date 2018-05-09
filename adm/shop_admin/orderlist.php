@@ -152,9 +152,9 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
     <a href="./orderdelivery.php" id="order_delivery" class="ov_a">엑셀배송처리</a>
     <?php } ?>
     <a href="./orderexcel.php" id="order_delivery" class="ov_order_input">주문등록</a>
-    <a href="./cartexcel.php" id="order_cate" class="ov_order_input">위메프 주문</a>
-    <a href="./cartexcel.php" id="order_cate" class="ov_order_input">티몬 주문</a>
-    <a href="./ordercondelete.php?<?php echo $qstr;?>" id="order_delete" class="ov_order_input">현재검색 삭제</a>
+    <a href="./cartexcel.php?sm=wmp" id="order_wmp_cate" class="ov_wmp_input"><i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> 위메프 주문</a>
+    <a href="./cartexcel.php?sm=tm" id="order_tm_cate" class="ov_tm_input"><i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> 티몬 주문</a>
+    <a href="./ordercondelete.php?<?php echo $qstr;?>" id="order_delete" class="ov_order_delete"><i class="fa fa-trash-o fa-lg" aria-hidden="true"></i> 현재검색 삭제</a>
    
 </div>
 
@@ -392,7 +392,17 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
             <input type="checkbox" name="chk[]" value="<?php echo $i ?>" id="chk_<?php echo $i ?>">
         </td>
         <td headers="th_ordnum" class="td_odrnum2" rowspan="2" colspan="2">
-            <a href="<?php echo G5_SHOP_URL; ?>/orderinquiryview.php?od_id=<?php echo $row['od_id']; ?>&amp;uid=<?php echo $uid; ?>" class="orderitem"><?php echo $disp_od_id; ?></a>
+<?php 
+$sm_full = '소셜마켓';
+$sm = $row['sm'];
+switch($sm){
+	case 'wmp' : $sm_full = '위메프';
+	break;
+	case 'tm' : $sm_full = '티몬';
+	break;
+}
+?>        
+            <a href="<?php echo G5_SHOP_URL; ?>/orderinquiryview.php?od_id=<?php echo $row['od_id']; ?>&amp;uid=<?php echo $uid; ?>" class="orderitem"><?php echo $sm_full.'</br>' ?><?php echo $disp_od_id; ?></a>
             <?php echo $od_mobile; ?>
             <?php echo $od_paytype; ?>
         </td>
@@ -566,11 +576,17 @@ $(function(){
         return false;
     });
     // 엑셀배송처리창
-    $("#order_cate").on("click", function() {
+    $("#order_wmp_cate").on("click", function() {
         var opt = "width=600,height=450,left=10,top=10";
         window.open(this.href, "win_excel", opt);
         return false;
     });    
+    // 엑셀배송처리창
+    $("#order_tm_cate").on("click", function() {
+        var opt = "width=600,height=450,left=10,top=10";
+        window.open(this.href, "win_excel", opt);
+        return false;
+    });      
 });
 
 function set_date(today)

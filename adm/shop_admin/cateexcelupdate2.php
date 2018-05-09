@@ -77,9 +77,61 @@ if($_FILES['excelfile']['tmp_name']) {
     $sc_join_id = 0;	//합포장 번호
     $pre_sc_join_id = 0;	//합포자 전 카트번호 
     $old_od = false;
-    for ($i = 2; $i <= $data->sheets[0]['numRows']; $i++) {
-        $total_count++;        
-        $j =1;           
+    $row_num_one = max(count($data->sheets[0]['cells']), 0);
+    $cols_num_one = $data->sheets[0]['numCols'];
+    
+    for ($i = 1; $i <= $row_num_one; $i++) {  	
+             
+        $j =1;         
+        unset($e_meta);
+        unset($e_val);
+        for ($j = 1; $j <= $cols_num_one; $j++) {
+        if($i == 1) {
+        	if($data->sheets[0]['cells'][$i][$j]) {
+        		$k++;
+        		$e_key[$j] = $data->sheets[0]['cells'][$i][$j];
+        	}
+        } else {
+        	$e_meta[$e_key[$j]] = $data->sheets[0]['cells'][$i][$j];
+        	$e_val[$j] = $data->sheets[0]['cells'][$i][$j];
+        }
+  	  }
+        if($i > 1){
+        	$total_count++;  
+        if($sm=="wmp"){
+        	$sc_od              = clean_xss_tags(addslashes($e_meta['주문번호']));	//소셜주문번호
+        	$sc_date            = clean_xss_tags(addslashes($e_meta['주문일시']));	//주문일시
+        	$sc_join_id         = clean_xss_tags(addslashes($e_meta['합포장번호']));	//합포장번호
+        	$sc_delivery_company= clean_xss_tags(addslashes($e_meta['택배사']));	//택배사
+        	$sc_delivery_num    = clean_xss_tags(addslashes($e_meta['운송장번호']));	//운송장번호
+        	$sc_delivery_reg    = clean_xss_tags(addslashes($e_meta['운송장등록일시']));	//운송장등록
+        	$sc_od_name         = clean_xss_tags(addslashes($e_meta['구매자이름']));	//구매자 이름
+        	$sc_item_id         = clean_xss_tags(addslashes($e_meta['상품ID']));	//상품ID
+        	$sc_item_name       = clean_xss_tags(addslashes($e_meta['상품명']));	//상품명
+        	$sc_item_op_id      = clean_xss_tags(addslashes($e_meta['옵션ID']));	//옵션ID
+        	$sc_item_op_name    = clean_xss_tags(addslashes($e_meta['옵션명']));	//옵션명
+        	$sc_od_qty          = (int)clean_xss_tags(addslashes($e_meta['구매수량']));	//구매수량
+        	$sc_od_price        = (int)clean_xss_tags(addslashes($e_meta['구매금액']));	//구매금액
+        	$sc_od_b_name       = clean_xss_tags(addslashes($e_meta['받는분 이름']));	//받는분 이름
+        	$sc_od_b_hp         = clean_xss_tags(addslashes($e_meta['받는분 휴대폰']));	//받는분 휴대폰
+        	$sc_od_b_zip        = preg_replace('/[^0-9]/', '', addslashes($e_meta['우편번호']));//받는분우편번호
+        	$sc_od_b_zip1       = substr($od_b_zip, 0, 3);
+        	$sc_od_b_zip2       = substr($od_b_zip, 3);
+        	$sc_od_b_addr1      = clean_xss_tags(addslashes($e_meta['주소']));	//받는분 주소
+        	$sc_od_r            = clean_xss_tags(addslashes($e_meta['배송비 유형']));	//배송비유형
+        	if($sc_od_r=="무료"){
+        		$it_sc_type = 1;	//무료배송
+        	}else{
+        		$it_sc_type = 3;	//유료배송
+        		$it_sc_method = 0;
+        	}
+        	$sc_od_memo         = clean_xss_tags(addslashes($e_meta['배송메시지']));	//배송메세지
+        	$sc_od_company      = clean_xss_tags(addslashes($e_meta['업체명']));	//업체명
+        	$sc_od_mid          = clean_xss_tags(addslashes($e_meta['구매자MID']));	//구매자MID
+        	$sc_od_uni          = clean_xss_tags(addslashes($e_meta['특이사항']));	//특이사항
+        	$it_id              = clean_xss_tags(addslashes($e_meta['업체상품코드']));	//업체상품코드
+        	$sc_delivery_delay  = clean_xss_tags(addslashes($e_meta['배송지연기준일']));	//배송지연기준일
+/*        	
         $sc_od              = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//소셜주문번호
         $sc_date            = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//주문일시
         $sc_join_id         = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//합포장번호  
@@ -112,6 +164,80 @@ if($_FILES['excelfile']['tmp_name']) {
         $sc_od_uni          = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//특이사항
         $it_id              = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//업체상품코드
         $sc_delivery_delay  = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//배송지연기준일
+*/        
+        }else if($sm=='tm'){
+        	$sc_od              = clean_xss_tags(addslashes($e_meta['주문번호']));	//소셜주문번호
+        	$sc_date            = clean_xss_tags(addslashes($e_meta['최종처리일']));	//주문일시
+        	$sc_join_id         = clean_xss_tags(addslashes($e_meta['딜번호']));	//합포장번호
+        	$sc_delivery_company= clean_xss_tags(addslashes($e_meta['택배사']));	//택배사
+        	$sc_delivery_num    = clean_xss_tags(addslashes($e_meta['운송장번호']));	//운송장번호
+        	$sc_delivery_reg    = clean_xss_tags(addslashes($e_meta['운송장등록시점']));	//운송장등록
+        	$sc_od_name         = clean_xss_tags(addslashes($e_meta['주문자명']));	//구매자 이름
+        	$sc_od_id         = clean_xss_tags(addslashes($e_meta['아이디']));	//구매자 ID(티몬만 있음)
+        	$sc_item_id         = clean_xss_tags(addslashes($e_meta['딜번호']));	//상품ID
+        	$sc_item_name       = clean_xss_tags(addslashes($e_meta['상품명']));	//상품명
+        	$sc_item_op_id      = clean_xss_tags(addslashes($e_meta['옵션번호']));	//옵션ID
+        	$sc_item_op_name    = clean_xss_tags(addslashes($e_meta['옵션명']));	//옵션명
+        	$sc_od_qty          = (int)clean_xss_tags(addslashes($e_meta['구매수량']));	//구매수량
+        	$sc_od_price        = (int)clean_xss_tags(addslashes($e_meta['판매금액']));	//구매금액
+        	$sc_od_b_name       = clean_xss_tags(addslashes($e_meta['수취인명']));	//받는분 이름
+        	$sc_od_b_hp         = clean_xss_tags(addslashes($e_meta['수취인연락처']));	//받는분 휴대폰
+        	$sc_od_b_zip        = preg_replace('/[^0-9]/', '', addslashes($e_meta['수취인우편번호']));//받는분우편번호
+        	$sc_od_b_zip1       = substr($od_b_zip, 0, 3);
+        	$sc_od_b_zip2       = substr($od_b_zip, 3);
+        	$sc_od_b_addr1      = clean_xss_tags(addslashes($e_meta['수취인주소']));	//받는분 주소
+        	//$sc_od_r            = clean_xss_tags(addslashes($e_meta['배송비 유형']));	//배송비유형
+        	$sc_od_r            = "무료";	//배송비유형
+        	if($sc_od_r=="무료"){
+        		$it_sc_type = 1;	//무료배송
+        	}else{
+        		$it_sc_type = 3;	//유료배송
+        		$it_sc_method = 0;
+        	}
+        	$sc_od_memo         = clean_xss_tags(addslashes($e_meta['배송요청메모']));	//배송메세지
+        	$sc_od_company      = clean_xss_tags(addslashes($e_meta['업체명']));	//업체명
+        	$sc_od_mid          = clean_xss_tags(addslashes($e_meta['아이디']));	//구매자MID
+        	$sc_od_uni          = clean_xss_tags(addslashes($e_meta['특이사항']));	//특이사항
+        	$it_id              = clean_xss_tags(addslashes($e_meta['파트너 CODE1']));	//업체상품코드
+        	$sc_delivery_delay  = clean_xss_tags(addslashes($e_meta['지연신고일']));	//배송지연기준일
+/*        	
+        	$sc_dill 			= clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//딜번호
+        	$sc_od              = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//소셜주문번호
+        	$sc_date            = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//주문일시
+        	$sc_join_id         = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//합포장번호
+        	$sc_delivery_company= clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//택배사
+        	$sc_delivery_num    = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//운송장번호
+        	$sc_delivery_reg    = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//운송장등록
+        	$sc_od_name         = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//구매자 이름
+        	$sc_item_id         = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//상품ID
+        	$sc_item_name       = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//상품명
+        	$sc_item_op_id      = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//옵션ID
+        	$sc_item_op_name    = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//옵션명
+        	$sc_od_qty          = (int)clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//구매수량
+        	$sc_od_price        = (int)clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//구매금액
+        	$sc_od_b_name       = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//받는분 이름
+        	$sc_od_b_hp         = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//받는분 휴대폰
+        	$sc_od_b_zip        = preg_replace('/[^0-9]/', '', addslashes($data->sheets[0]['cells'][$i][$j++]));//받는분우편번호
+        	$sc_od_b_zip1       = substr($od_b_zip, 0, 3);
+        	$sc_od_b_zip2       = substr($od_b_zip, 3);
+        	$sc_od_b_addr1      = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//받는분 주소
+        	$sc_od_r            = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//배송비유형
+        	if($sc_od_r=="무료"){
+        		$it_sc_type = 1;	//무료배송
+        	}else{
+        		$it_sc_type = 3;	//유료배송
+        		$it_sc_method = 0;
+        	}
+        	$sc_od_memo         = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//배송메세지
+        	$sc_od_company      = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//업체명
+        	$sc_od_mid          = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//구매자MID
+        	$sc_od_uni          = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//특이사항
+        	$it_id              = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//업체상품코드
+        	$sc_delivery_delay  = clean_xss_tags(addslashes($data->sheets[0]['cells'][$i][$j++]));	//배송지연기준일
+*/        	
+        }
+        
+        
         
         $sql = "select od_id,od_cart_count,od_cart_price from {$g5['g5_shop_order_table']} where sc_od_id = '{$sc_od}' and sc_join_id = '{$sc_join_id}'";
         $row = sql_fetch($sql); 
@@ -174,7 +300,8 @@ if($_FILES['excelfile']['tmp_name']) {
         	od_time           = '".G5_TIME_YMDHIS."',
         	od_ip             = '$REMOTE_ADDR',
         	od_settle_case    = '무통장',
-        	od_test           = ''
+        	od_test           = '',
+			sm 				= '$sm'	
         	";
         	sql_query($sql);
         	//$total_qty = 0;
@@ -206,7 +333,7 @@ if($_FILES['excelfile']['tmp_name']) {
         // 장바구니에 Insert
         $comma = '';
         $sql = " INSERT INTO {$g5['g5_shop_cart_table']}
-                        ( od_id,sc_od_id,sc_join_id, mb_id, it_id, it_name, it_sc_type, it_sc_method , ct_status, ct_price, ct_option, ct_qty, ct_time, ct_ip, ct_direct, ct_select_time )
+                        ( od_id,sc_od_id,sc_join_id, mb_id, it_id, it_name, it_sc_type, it_sc_method , ct_status, ct_price, ct_option, ct_qty, ct_time, ct_ip, ct_direct, ct_select_time, sm )
                     VALUES ";
         $sql .= "( '{$od_id}'
 				, '{$sc_od}'
@@ -223,7 +350,8 @@ if($_FILES['excelfile']['tmp_name']) {
 				, '".G5_TIME_YMDHIS."'
 				, '$REMOTE_ADDR'
 				, '0'	
-				, '$ct_select_time' )";
+				, '$ct_select_time' 
+				, '{$sm}')";
             sql_query($sql);
             if($old_od){
            	$sc_qty = 0;
@@ -240,6 +368,7 @@ if($_FILES['excelfile']['tmp_name']) {
             }
             $succ_count++;
             //print_r2($sql);exit;
+        } 
     }
 }
 
