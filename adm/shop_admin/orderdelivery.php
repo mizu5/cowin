@@ -7,7 +7,15 @@ auth_check($auth[$sub_menu], "w");
 $g5['title'] = '엑셀 배송일괄처리';
 include_once(G5_PATH.'/head.sub.php');
 ?>
+<script>
+	$(document).ready(function(){
+		$('.order_con_wrap').hide();
 
+	});
+	function showExeDelivery(){
+		$('.order_con_wrap').show();
+	}	
+</script>
 <div class="new_win">
     <h1><?php echo $g5['title']; ?></h1>
 
@@ -21,8 +29,13 @@ include_once(G5_PATH.'/head.sub.php');
         </p>
 
         <p>
-            <a href="<?php echo G5_ADMIN_URL; ?>/shop_admin/orderdeliveryexcel.php">배송정보 일괄등록용 엑셀파일 다운로드</a>
+            <a href="<?php echo G5_ADMIN_URL;?>/shop_admin/orderdeliveryexcel.php" onclick="showExeDelivery();">배송정보 일괄등록용 엑셀파일 다운로드</a>
         </p>
+        <div  class="local_ov01 local_ov order_con_wrap">
+
+             <a href="./ordercondelivery.php?<?php echo $qstr;?>" id="order_con_delivery" class="ov_a">배송처리</a>
+      
+        </div>
     </div>
 
     <form name="forderdelivery" method="post" action="./orderdeliveryupdate.php" enctype="MULTIPART/FORM-DATA" autocomplete="off">

@@ -112,11 +112,17 @@ if($_FILES['excelfile']['tmp_name']) {
         	$sc_item_op_name    = clean_xss_tags(addslashes($e_meta['옵션명']));	//옵션명
         	$sc_od_qty          = (int)clean_xss_tags(addslashes($e_meta['구매수량']));	//구매수량
         	$sc_od_price        = (int)clean_xss_tags(addslashes($e_meta['구매금액']));	//구매금액
+        	$sc_od_price 		= $sc_od_price / $sc_od_qty;							//위메프 구매금액을 단가로 전환 
         	$sc_od_b_name       = clean_xss_tags(addslashes($e_meta['받는분 이름']));	//받는분 이름
         	$sc_od_b_hp         = clean_xss_tags(addslashes($e_meta['받는분 휴대폰']));	//받는분 휴대폰
-        	$sc_od_b_zip        = preg_replace('/[^0-9]/', '', addslashes($e_meta['우편번호']));//받는분우편번호
-        	$sc_od_b_zip1       = substr($od_b_zip, 0, 3);
-        	$sc_od_b_zip2       = substr($od_b_zip, 3);
+        	$sc_od_b_zip        = preg_replace('/[^0-9-]/', '', addslashes($e_meta['우편번호']));//받는분우편번호
+        	$zip =explode('-' , $sc_od_b_zip);
+        	$sc_od_b_zip1       = $zip[0];
+        	if(!is_null($zip[1])){
+        	$sc_od_b_zip2       = $zip[1];
+        	}else{
+        		unset($sc_od_b_zip2);
+        	}
         	$sc_od_b_addr1      = clean_xss_tags(addslashes($e_meta['주소']));	//받는분 주소
         	$sc_od_r            = clean_xss_tags(addslashes($e_meta['배송비 유형']));	//배송비유형
         	if($sc_od_r=="무료"){
@@ -179,12 +185,17 @@ if($_FILES['excelfile']['tmp_name']) {
         	$sc_item_op_id      = clean_xss_tags(addslashes($e_meta['옵션번호']));	//옵션ID
         	$sc_item_op_name    = clean_xss_tags(addslashes($e_meta['옵션명']));	//옵션명
         	$sc_od_qty          = (int)clean_xss_tags(addslashes($e_meta['구매수량']));	//구매수량
-        	$sc_od_price        = (int)clean_xss_tags(addslashes($e_meta['판매금액']));	//구매금액
+        	$sc_od_price        = (int)clean_xss_tags(addslashes($e_meta['판매단가']));	//판매단가
         	$sc_od_b_name       = clean_xss_tags(addslashes($e_meta['수취인명']));	//받는분 이름
         	$sc_od_b_hp         = clean_xss_tags(addslashes($e_meta['수취인연락처']));	//받는분 휴대폰
-        	$sc_od_b_zip        = preg_replace('/[^0-9]/', '', addslashes($e_meta['수취인우편번호']));//받는분우편번호
-        	$sc_od_b_zip1       = substr($od_b_zip, 0, 3);
-        	$sc_od_b_zip2       = substr($od_b_zip, 3);
+        	$sc_od_b_zip        = preg_replace('/[^0-9-]/', '', addslashes($e_meta['수취인우편번호']));//받는분우편번호
+        	$zip =explode('-' , $sc_od_b_zip);
+        	$sc_od_b_zip1       = $zip[0];
+        	if(!is_null($zip[1])){
+        		$sc_od_b_zip2       = $zip[1];
+        	}else{
+        		unset($sc_od_b_zip2);
+        	}
         	$sc_od_b_addr1      = clean_xss_tags(addslashes($e_meta['수취인주소']));	//받는분 주소
         	//$sc_od_r            = clean_xss_tags(addslashes($e_meta['배송비 유형']));	//배송비유형
         	$sc_od_r            = "무료";	//배송비유형
@@ -238,8 +249,11 @@ if($_FILES['excelfile']['tmp_name']) {
         }
         
         
-        
         $sql = "select od_id,od_cart_count,od_cart_price from {$g5['g5_shop_order_table']} where sc_od_id = '{$sc_od}' and sc_join_id = '{$sc_join_id}'";
+        /*$sql = "select SO.od_id AS od_id,SO.od_cart_count AS od_cart_count,SO.od_cart_price AS od_cart_price,SC.sc_od_id AS sc_od_id, SC.it_name AS it_name, SC.ct_option AS ct_option from {$g5['g5_shop_order_table']} 
+AS SO RIGHT OUTER JOIN  {$g5['g5_shop_cart_table']} AS SC ON SC.od_id = SO.od_id where SC.sc_od_id = '{$sc_od}' and SC.sc_join_id = '{$sc_join_id}'and SC.ct_option NOT IN ('{$sc_item_op_name}')";
+*/
+//        echo $sql;        exit;
         $row = sql_fetch($sql); 
         echo "ccount:".$row[od_cart_count];
         echo "cprice:".$row[od_cart_price];
@@ -329,9 +343,12 @@ if($_FILES['excelfile']['tmp_name']) {
             $ct_select = 0;
             $ct_select_time = '0000-00-00 00:00:00';
         }
-
+		$sql = "SELECT  od_id from {$g5['g5_shop_cart_table']} where sc_od_id = '{$sc_od}' and ct_option IN ('{$sc_item_op_name}')";	//카트에 중복 등록 방지
+		//echo $sql; exit;
+		$row_du = sql_fetch($sql);
         // 장바구니에 Insert
         $comma = '';
+        if(!$row_du[od_id]){
         $sql = " INSERT INTO {$g5['g5_shop_cart_table']}
                         ( od_id,sc_od_id,sc_join_id, mb_id, it_id, it_name, it_sc_type, it_sc_method , ct_status, ct_price, ct_option, ct_qty, ct_time, ct_ip, ct_direct, ct_select_time, sm )
                     VALUES ";
@@ -352,6 +369,7 @@ if($_FILES['excelfile']['tmp_name']) {
 				, '0'	
 				, '$ct_select_time' 
 				, '{$sm}')";
+        //echo $sql; exit;
             sql_query($sql);
             if($old_od){
            	$sc_qty = 0;
@@ -368,6 +386,7 @@ if($_FILES['excelfile']['tmp_name']) {
             }
             $succ_count++;
             //print_r2($sql);exit;
+        }//if(!$row_du[od_id]){
         } 
     }
 }

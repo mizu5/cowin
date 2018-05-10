@@ -150,9 +150,11 @@ $sql  = " select *,
                sql_query($sql, true);
                
                // cart 테이블의 상품 상태를 삭제로 변경
-               $sql = " update {$g5['g5_shop_cart_table']} set ct_status = '삭제' where od_id = '$od_id'";
+              // $sql = " update {$g5['g5_shop_cart_table']} set ct_status = '삭제' where od_id = '$od_id'";
+               $sql = " delete from {$g5['g5_shop_cart_table']} where od_id = '$od_id'";
                sql_query($sql);
                
+               //$sql = " update {$g5['g5_shop_order_table']} set od_status = '삭제' where od_id = '$od_id' ";
                $sql = " delete from {$g5['g5_shop_order_table']} where od_id = '$od_id' ";
                sql_query($sql);
            }

@@ -93,6 +93,19 @@ if ($od_escrow) {
     $where[] = " od_escrow = 1 ";
 }
 
+if($od_wm && $od_tm){
+	$where[] = " sm in ('wmp','tm') ";
+}
+
+if ($od_wm && !$od_tm){
+	$where[] = " sm = 'wmp' ";
+}
+if ($od_tm && !$od_wm){
+	$where[] = " sm = 'tm' ";
+}
+
+$where[] = " od_status not in('삭제') ";
+
 if ($fr_date && $to_date) {
     $where[] = " od_time between '$fr_date 00:00:00' and '$to_date 23:59:59' ";
 }
@@ -128,7 +141,7 @@ $result = sql_query($sql);
 echo $sql;
 echo "<br>검색일자와 소셜마켓이 설정되어있을경우만 삭제할수있게 기능추가";
 echo "<br>위메프,티몬별 대량입력 구분";
-$qstr1 = "od_status=".urlencode($od_status)."&amp;od_settle_case=".urlencode($od_settle_case)."&amp;od_misu=$od_misu&amp;od_cancel_price=$od_cancel_price&amp;od_refund_price=$od_refund_price&amp;od_receipt_point=$od_receipt_point&amp;od_coupon=$od_coupon&amp;fr_date=$fr_date&amp;to_date=$to_date&amp;sel_field=$sel_field&amp;search=$search&amp;save_search=$search";
+$qstr1 = "od_status=".urlencode($od_status)."&amp;od_settle_case=".urlencode($od_settle_case)."&amp;od_misu=$od_misu&amp;od_cancel_price=$od_cancel_price&amp;od_refund_price=$od_refund_price&amp;od_receipt_point=$od_receipt_point&amp;od_coupon=$od_coupon&amp;fr_date=$fr_date&amp;to_date=$to_date&amp;sel_field=$sel_field&amp;search=$search&amp;save_search=$search&amp;od_wm=$od_wm&amp;od_tm=$od_tm&amp;";
 if($default['de_escrow_use'])
     $qstr1 .= "&amp;od_escrow=$od_escrow";
 $qstr = "$qstr1&amp;sort1=$sort1&amp;sort2=$sort2&amp;page=$page";
@@ -148,13 +161,18 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
     <?php echo $listall; ?>
     <span class="btn_ov01"><span class="ov_txt">전체 주문내역</span><span class="ov_num"> <?php echo number_format($total_count); ?>건</span></span>
     <span class="btn_ov01"><span class="ov_txt">전체 주문상품</span><span class="ov_num"> <?php echo number_format($total_c_count); ?>건</span></span>
-    <?php if($od_status == '준비' && $total_count > 0) { ?>
-    <a href="./orderdelivery.php" id="order_delivery" class="ov_a">엑셀배송처리</a>
+    <?php if($od_status == '준비' && $total_count > 0) { ?>    
+    <a href="./orderdelivery.php?<?php echo $qstr;?>" id="order_delivery" class="ov_a">배송정보 엑셀출력</a>
     <?php } ?>
-    <a href="./orderexcel.php" id="order_delivery" class="ov_order_input">주문등록</a>
-    <a href="./cartexcel.php?sm=wmp" id="order_wmp_cate" class="ov_wmp_input"><i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> 위메프 주문</a>
-    <a href="./cartexcel.php?sm=tm" id="order_tm_cate" class="ov_tm_input"><i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> 티몬 주문</a>
+    
+    <!-- a href="./orderexcel.php" id="order_delivery" class="ov_order_input">주문등록</a-->
+    <?php if( !in_array($od_status,['주문','입금','준비','배송','완료','전체취소','부분취소'])) { ?>       
+    <a href="./cartexcel.php?sm=wmp" id="order_wmp_cate" class="ov_wmp_input" title='위메프 주문 전용'><i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> 위메프 주문</a>
+    <a href="./cartexcel.php?sm=tm" id="order_tm_cate" class="ov_tm_input" title='티몬 주문 전용'><i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> 티몬 주문</a>
+	<?php }?>
+    <?php if( in_array($od_status,['주문','입금','준비','배송','완료','전체취소','부분취소']) && $total_count > 0) { ?>   
     <a href="./ordercondelete.php?<?php echo $qstr;?>" id="order_delete" class="ov_order_delete"><i class="fa fa-trash-o fa-lg" aria-hidden="true"></i> 현재검색 삭제</a>
+    <?php }?>
    
 </div>
 
@@ -188,9 +206,9 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
 <form class="local_sch03 local_sch">
 <div>
     <strong>소셜마켓</strong>
-    <input type="checkbox" name="od_wm" value="Y" id="od_sm01" <?php echo get_checked($od_wm, 'Y'); ?>>
+    <input type="checkbox" name="od_wm" value="Y" id="od_wm" <?php echo get_checked($od_wm, 'Y'); ?>>
     <label for="od_misu01">위메프</label>
-    <input type="checkbox" name="od_tm" value="Y" id="od_sm02" <?php echo get_checked($od_tm, 'Y'); ?>>
+    <input type="checkbox" name="od_tm" value="Y" id="od_tm" <?php echo get_checked($od_tm, 'Y'); ?>>
     <label for="od_misu02">티몬</label>    
 </div>
 <div>
@@ -575,6 +593,12 @@ $(function(){
         window.open(this.href, "win_excel", opt);
         return false;
     });
+    // 엑셀배송처리창
+    $("#order_con_delivery").on("click", function() {
+        var opt = "width=600,height=450,left=10,top=10";
+        window.open(this.href, "win_excel", opt);
+        return false;
+    });    
     // 엑셀배송처리창
     $("#order_wmp_cate").on("click", function() {
         var opt = "width=600,height=450,left=10,top=10";

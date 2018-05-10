@@ -10,6 +10,7 @@ $sql = " select *
             where od_misu = '0'
               and od_status = '준비'
             order by od_b_name desc";
+
 $result = sql_query($sql);
 
 if(!@sql_num_rows($result))
@@ -20,8 +21,8 @@ function column_char($i) { return chr( 65 + $i ); }
 if (phpversion() >= '5.2.0') {
     include_once(G5_LIB_PATH.'/PHPExcel.php');
     
-    $headers = array('주문번호', '주문자명', '주문자전화1', '주문자전화2', '배송자명', '배송지전화1', '배송지전화2', '배송지주소', '상품명', '배송회사', '운송장번호');
-    $widths  = array(18, 15, 15, 15, 15, 15, 15, 50, 20, 20);
+    $headers = array( '배송자명', '우편번호', '배송지주소', '소셜커머스', '주문자전화', '배송자전화', '', '상품명', '배송메세지','총상품수','');
+    $widths  = array(18, 15, 50, 15, 15, 15, 15, 50, 30,15,15);
     $header_bgcolor = 'FFABCDEF';
     $last_char = column_char(count($headers) - 1);
 
@@ -29,33 +30,54 @@ if (phpversion() >= '5.2.0') {
     	
     	$sql = " select *
     	from {$g5['g5_shop_cart_table']}
-    	where od_id = {$row['od_id']}";
+    	where od_id = {$row['od_id']} and ct_status = '준비'";
     	$result2 = sql_query($sql);
-    	$total_option='';
+
+    	$total_option ='';
+    	$total_qty = 0;
+    	$sm = smByName($row[sm]);
     	for($j=1; $cart_row=sql_fetch_array($result2); $j++) {
     		if($j==1){
-    			$total_option .=$cart_row['it_name'].'-';
+    			$total_option .=$sm;
     		}
-    	$total_option .= ' '.$cart_row['ct_option'].' '.$cart_row['ct_qty'].'개 |';    
+    		$total_option .= ' ★['.$cart_row['it_id'].'] '.$cart_row['ct_option'].' '.$cart_row['ct_qty'].'개 ';   
+    		$total_qty += $cart_row['ct_qty'];
     	}    	
-    	
+
     	$total_op_strlen = mb_strlen($total_option,'utf-8');
-    	
-    	$total_count = ceil($total_option/ 350)+1;
+    	$d_len = 400;
+    	$total_count = ceil($total_op_strlen/$d_len);
     	$k = 0;
     	while($k < $total_count){
+    		if($total_count > 1){
+    			//$option_print = substr($total_option,$k*$d_len+1,$k*$d_len+$d_len);
+    			$option_print= mb_substr($total_option, $k*$d_len+1 , $k*$d_len+$d_len,'utf-8');
+    		}else{
+    			$option_print = $total_option;
+    		}
+    	if($k<1){
+    	if(!empty($row['od_zip2'])){
+    		$zip = $row['od_zip1'].'-'.$row['od_zip2'];
+    	}else{
+    		$zip = $row['od_zip1'];
+    	}
+    	$sm = smByName($row[sm]);
         $rows[] = 
-                    array(' '.$row['od_id'], 
-                          $row['od_name'], 
-                          ' '.$row['od_tel'], 
-                          ' '.$row['od_hp'], 
-                          $row['od_b_name'], 
-                          ' '.$row['od_b_tel'], 
-                          ' '.$row['od_b_hp'], 
-                          print_address($row['od_b_addr1'], $row['od_b_addr2'], $row['od_b_addr3'], $row['od_b_addr_jibeon']),
-                    		''.$total_option,						
-                          $row['od_delivery_company'],
-                          $row['od_invoice']);
+        array($row['od_b_name'],
+        					' '.$zip,
+        					print_address($row['od_b_addr1'], $row['od_b_addr2'], $row['od_b_addr3'], $row['od_b_addr_jibeon']),
+        					' '.$sm,
+                          	' '.$row['od_hp'],
+        					' '.$row['od_b_hp'],
+        					'1',
+        					' '.$option_print,
+        					' '.$row['od_memo'],
+        					' 총:  '.$total_qty.'개',
+        					'신용');
+    	}else{
+    		$rows[] =
+    		array('"','"','"','"','"','"','"',''.$option_print,'"','"','"');
+    	}
                     $k++;
     	
 
