@@ -140,7 +140,7 @@ $sql  = " select *,
 $result = sql_query($sql);
 echo $sql;
 echo "<br>검색일자와 소셜마켓이 설정되어있을경우만 삭제할수있게 기능추가";
-echo "<br>위메프,티몬별 대량입력 구분";
+echo "<br>";
 $qstr1 = "od_status=".urlencode($od_status)."&amp;od_settle_case=".urlencode($od_settle_case)."&amp;od_misu=$od_misu&amp;od_cancel_price=$od_cancel_price&amp;od_refund_price=$od_refund_price&amp;od_receipt_point=$od_receipt_point&amp;od_coupon=$od_coupon&amp;fr_date=$fr_date&amp;to_date=$to_date&amp;sel_field=$sel_field&amp;search=$search&amp;save_search=$search&amp;od_wm=$od_wm&amp;od_tm=$od_tm&amp;";
 if($default['de_escrow_use'])
     $qstr1 .= "&amp;od_escrow=$od_escrow";
@@ -599,18 +599,25 @@ $(function(){
         window.open(this.href, "win_excel", opt);
         return false;
     });    
-    // 엑셀배송처리창
+    // 위메프 엑셀배송처리창
     $("#order_wmp_cate").on("click", function() {
         var opt = "width=600,height=450,left=10,top=10";
         window.open(this.href, "win_excel", opt);
         return false;
     });    
-    // 엑셀배송처리창
+    // 티몬 엑셀배송처리창
     $("#order_tm_cate").on("click", function() {
         var opt = "width=600,height=450,left=10,top=10";
         window.open(this.href, "win_excel", opt);
         return false;
-    });      
+    });   
+    // 삭제처리
+    $("#order_delete").on("click", function() {
+        var opt = "width=600,height=450,left=10,top=10";
+        var input = confirm('<?php echo "주문내역: ".number_format($total_count);?>건 / <?php echo '주문상품: '.number_format($total_c_count) ?>건 을 삭제하시겠습니까?');
+        if(input){window.open(this.href, "win_delete", opt);}
+        return false;
+    });       
 });
 
 function set_date(today)

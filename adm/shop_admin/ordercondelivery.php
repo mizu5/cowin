@@ -116,7 +116,16 @@ if ($od_coupon) {
 if ($od_escrow) {
     $where[] = " od_escrow = 1 ";
 }
+if($od_wm && $od_tm){
+	$where[] = " sm in ('wmp','tm') ";
+}
 
+if ($od_wm && !$od_tm){
+	$where[] = " sm = 'wmp' ";
+}
+if ($od_tm && !$od_wm){
+	$where[] = " sm = 'tm' ";
+}
 if ($fr_date && $to_date) {
     $where[] = " od_time between '$fr_date 00:00:00' and '$to_date 23:59:59' ";
 }
@@ -181,6 +190,8 @@ $qstr  = "sort1=$sort1&amp;sort2=$sort2&amp;sel_field=$sel_field&amp;search=$sea
 $qstr .= "&amp;od_status=배송";
 $qstr .= "&amp;od_settle_case=$od_settle_case";
 $qstr .= "&amp;od_misu=$od_misu";
+$qstr .= "&amp;od_wm=$od_wm";
+$qstr .= "&amp;od_tm=$od_tm";
 $qstr .= "&amp;od_cancel_price=$od_cancel_price";
 $qstr .= "&amp;od_receipt_price=$od_receipt_price";
 $qstr .= "&amp;od_receipt_point=$od_receipt_point";

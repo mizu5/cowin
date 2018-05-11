@@ -43,7 +43,6 @@ $sel_field = get_search_string($sel_field);
 if( !in_array($sel_field, array('od_id', 'mb_id', 'od_name', 'od_tel', 'od_hp', 'od_b_name', 'od_b_tel', 'od_b_hp', 'od_deposit_name', 'od_invoice')) ){   //검색할 필드 대상이 아니면 값을 제거
     $sel_field = '';
 }
-echo "sel_field:".$sel_field;
 $od_status = get_search_string($od_status);
 $search = get_search_string($search);
 if(! preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $fr_date) ) $fr_date = '';
@@ -117,6 +116,17 @@ if ($od_escrow) {
     $where[] = " od_escrow = 1 ";
 }
 
+
+if($od_wm && $od_tm){
+	$where[] = " sm in ('wmp','tm') ";
+}
+
+if ($od_wm && !$od_tm){
+	$where[] = " sm = 'wmp' ";
+}
+if ($od_tm && !$od_wm){
+	$where[] = " sm = 'tm' ";
+}
 if ($fr_date && $to_date) {
     $where[] = " od_time between '$fr_date 00:00:00' and '$to_date 23:59:59' ";
 }
@@ -129,6 +139,13 @@ if ($sel_field == "")  $sel_field = "od_id";
 if ($sort1 == "") $sort1 = "od_id";
 if ($sort2 == "") $sort2 = "desc";
 
+error_reporting(E_ALL ^ E_NOTICE);
+
+$fail_od_id = array();
+$total_count = 0;
+$fail_count = 0;
+$succ_count = 0;
+
 $sql_common = " from {$g5['g5_shop_order_table']} $sql_search ";
 
 $sql  = " select *,
@@ -137,6 +154,7 @@ $sql  = " select *,
            order by $sort1 $sort2";
 
            $result = sql_query($sql);
+           
            for ($i=0; $row=sql_fetch_array($result); $i++)
            {
                if (!$row) continue;
@@ -147,16 +165,33 @@ $sql  = " select *,
                $od_id = $row['od_id'];
                $data = serialize($row);
                $sql = " insert {$g5['g5_shop_order_delete_table']} set de_key = '$od_id', de_data = '".addslashes($data)."', mb_id = '{$member['mb_id']}', de_ip = '{$_SERVER['REMOTE_ADDR']}', de_datetime = '".G5_TIME_YMDHIS."' ";
-               sql_query($sql, true);
+               $results = sql_query($sql);
+               if(!$results){
+               	$fail_count++;
+               	$fail_od_id[] = $od_id;
+               	continue;
+               }
                
                // cart 테이블의 상품 상태를 삭제로 변경
               // $sql = " update {$g5['g5_shop_cart_table']} set ct_status = '삭제' where od_id = '$od_id'";
                $sql = " delete from {$g5['g5_shop_cart_table']} where od_id = '$od_id'";
-               sql_query($sql);
+               $results = sql_query($sql);
+               if(!$results){
+               	$fail_count++;
+               	$fail_od_id[] = $od_id;
+               	continue;
+               }
                
                //$sql = " update {$g5['g5_shop_order_table']} set od_status = '삭제' where od_id = '$od_id' ";
                $sql = " delete from {$g5['g5_shop_order_table']} where od_id = '$od_id' ";
-               sql_query($sql);
+               $results = sql_query($sql);
+               if(!$results){
+               	$fail_count++;
+               	$fail_od_id[] = $od_id;
+               	continue;
+               }
+               
+               $succ_count++;
            }
            
            
@@ -164,10 +199,40 @@ $qstr  = "sort1=$sort1&amp;sort2=$sort2&amp;sel_field=$sel_field&amp;search=$sea
 $qstr .= "&amp;od_status=$search_od_status";
 $qstr .= "&amp;od_settle_case=$od_settle_case";
 $qstr .= "&amp;od_misu=$od_misu";
+$qstr .= "&amp;od_wm=$od_wm";
+$qstr .= "&amp;od_tm=$od_tm";
 $qstr .= "&amp;od_cancel_price=$od_cancel_price";
 $qstr .= "&amp;od_receipt_price=$od_receipt_price";
 $qstr .= "&amp;od_receipt_point=$od_receipt_point";
 $qstr .= "&amp;od_receipt_coupon=$od_receipt_coupon";
+$g5['title'] = '주문 일괄 삭제 처리 결과';
+include_once(G5_PATH.'/head.sub.php');
+?>
+<div class="new_win">
+<h1><?php echo $g5['title']; ?></h1>
 
-goto_url("./orderlist.php?$qstr");
+    <div class="local_desc01 local_desc">
+        <p>상품 일괄 삭제를  완료했습니다.</p>
+    </div>
+
+    <dl id="excelfile_result">
+        <dt>총 삭제 건수</dt>
+        <dd><?php echo number_format($total_count); ?></dd>
+        <dt class="result_done">완료건수</dt>
+        <dd class="result_done"><?php echo number_format($succ_count); ?></dd>
+        <dt class="result_fail">실패건수</dt>
+        <dd class="result_fail"><?php echo number_format($fail_count); ?></dd>
+        <?php if($fail_count > 0) { ?>
+        <dt>실패주문코드</dt>
+        <dd><?php echo implode(', ', $fail_od_id); ?></dd>
+        <?php } ?>
+    </dl>
+
+    <div class="btn_confirm01 btn_confirm">
+        <button type="button" onclick="opener.location.href='./orderlist.php?<?php echo $qstr?>';window.close();">창닫기</button>
+    </div>
+
+</div>
+<?php
+include_once(G5_PATH.'/tail.sub.php');
 ?>
