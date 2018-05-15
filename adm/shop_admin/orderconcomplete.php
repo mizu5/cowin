@@ -43,6 +43,7 @@ $sel_field = get_search_string($sel_field);
 if( !in_array($sel_field, array('od_id', 'mb_id', 'od_name', 'od_tel', 'od_hp', 'od_b_name', 'od_b_tel', 'od_b_hp', 'od_deposit_name', 'od_invoice')) ){   //검색할 필드 대상이 아니면 값을 제거
     $sel_field = '';
 }
+echo "sel_field:".$sel_field;
 $od_status = get_search_string($od_status);
 $search = get_search_string($search);
 if(! preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $fr_date) ) $fr_date = '';
@@ -115,8 +116,6 @@ if ($od_coupon) {
 if ($od_escrow) {
     $where[] = " od_escrow = 1 ";
 }
-
-
 if($od_wm && $od_tm){
 	$where[] = " sm in ('wmp','tm') ";
 }
@@ -139,101 +138,64 @@ if ($sel_field == "")  $sel_field = "od_id";
 if ($sort1 == "") $sort1 = "od_id";
 if ($sort2 == "") $sort2 = "desc";
 
-error_reporting(E_ALL ^ E_NOTICE);
-
-$fail_od_id = array();
-$total_count = 0;
-$fail_count = 0;
-$succ_count = 0;
-
 $sql_common = " from {$g5['g5_shop_order_table']} $sql_search ";
 
 $sql  = " select *,
             (od_cart_coupon + od_coupon + od_send_coupon) as couponprice
            $sql_common
            order by $sort1 $sort2";
-
            $result = sql_query($sql);
+           error_reporting(E_ALL ^ E_NOTICE);
+           
+           $fail_od_id = array();
+           $total_count = 0;
+           $fail_count = 0;
+           $succ_count = 0;
+           
            
            for ($i=0; $row=sql_fetch_array($result); $i++)
            {
+           	$total_count++;
                if (!$row) continue;
-               
-               // 주문상태가 주문이 아니면 건너뜀
-             //  if($row['od_status'] != '주문') continue;
-               
-
-               
-               $od_id = $row['od_id'];
-               $data = serialize($row);
-               $sql = " insert {$g5['g5_shop_order_delete_table']} set de_key = '$od_id', de_data = '".addslashes($data)."', mb_id = '{$member['mb_id']}', de_ip = '{$_SERVER['REMOTE_ADDR']}', de_datetime = '".G5_TIME_YMDHIS."' ";
-               $results = sql_query($sql);
-               if(!$results){
+               // 주문정보
+               $od_id = $row[od_id];
+               if (!$od_id) {
                	$fail_count++;
                	$fail_od_id[] = $od_id;
                	continue;
                }
                
-               
-               /*재고수량 삭제후 다시 더하기*/
-               $sql = "select * from {$g5['g5_shop_cart_table']} where od_id = '$od_id'";
-               $result_plus = sql_query($sql);
-
-               for ($j=0; $ct=sql_fetch_array($result_plus); $j++)
-               {
-               	$ct_status = $ct['ct_status'];
-
-               if(!$ct['ct_id'])
-               	continue;
-               if ($ct['ct_stock_use'])
-               {
-               	if ($ct_status == '주문' || $ct_status == '취소' || $ct_status == '반품' || $ct_status == '품절' || $ct_status == '완료' || $ct_status == '배송')
-               	{
-               		$stock_use = 0;
-               		// 재고에 다시 더한다.
-               		if($ct['io_id']) {
-               			$sql = " update {$g5['g5_shop_item_option_table']}
-               			set io_stock_qty = io_stock_qty + '{$ct['ct_qty']}'
-               			where it_id = '{$ct['it_id']}'
-               			and io_id = '{$ct['io_id']}'
-               			and io_type = '{$ct['io_type']}' ";
-               		} else {
-               			$sql = " update {$g5['g5_shop_item_table']}
-               			set it_stock_qty = it_stock_qty + '{$ct['ct_qty']}'
-               			where it_id = '{$ct['it_id']}' ";
-               		}
-               		
-               		sql_query($sql);
-               	}
-               }
-               }
-               
-               
-               // cart 테이블의 상품 상태를 삭제로 변경
-              // $sql = " update {$g5['g5_shop_cart_table']} set ct_status = '삭제' where od_id = '$od_id'";
-               $sql = " delete from {$g5['g5_shop_cart_table']} where od_id = '$od_id'";
-               $results = sql_query($sql);
-               if(!$results){
+               if($row['od_status'] != '배송') {
                	$fail_count++;
                	$fail_od_id[] = $od_id;
                	continue;
                }
                
-               //$sql = " update {$g5['g5_shop_order_table']} set od_status = '삭제' where od_id = '$od_id' ";
-               $sql = " delete from {$g5['g5_shop_order_table']} where od_id = '$od_id' ";
-               $results = sql_query($sql);
-               if(!$results){
-               	$fail_count++;
-               	$fail_od_id[] = $od_id;
-               	continue;
+               // 주문정보 업데이트
+               
+               change_status($od_id, '배송', '완료');
+               
+               // 완료인 경우에만 상품구입 합계수량을 상품테이블에 저장한다.
+               $sql2 = " select it_id from {$g5['g5_shop_cart_table']} where od_id = '$od_id' and ct_status = '완료' group by it_id ";
+               $result2 = sql_query($sql2);
+               for ($k=0; $row2=sql_fetch_array($result2); $k++) {
+               	$sql3 = " select sum(ct_qty) as sum_qty from {$g5['g5_shop_cart_table']} where it_id = '{$row2['it_id']}' and ct_status = '완료' ";
+               	$row3 = sql_fetch($sql3);
+               	
+               	$sql4 = " update {$g5['g5_shop_item_table']} set it_sum_qty = '{$row3['sum_qty']}' where it_id = '{$row2['it_id']}' ";
+               	sql_query($sql4);
+//            	echo $sql3.'</br>';  	echo $sql4;   	exit;
                }
+               
                
                $succ_count++;
+               // 주문상태가 주문이 아니면 건너뜀
+             //  if($row['od_status'] != '주문') continue;
            }
            
            
 $qstr  = "sort1=$sort1&amp;sort2=$sort2&amp;sel_field=$sel_field&amp;search=$search";
-$qstr .= "&amp;od_status=$search_od_status";
+$qstr .= "&amp;od_status=완료";
 $qstr .= "&amp;od_settle_case=$od_settle_case";
 $qstr .= "&amp;od_misu=$od_misu";
 $qstr .= "&amp;od_wm=$od_wm";
@@ -242,18 +204,22 @@ $qstr .= "&amp;od_cancel_price=$od_cancel_price";
 $qstr .= "&amp;od_receipt_price=$od_receipt_price";
 $qstr .= "&amp;od_receipt_point=$od_receipt_point";
 $qstr .= "&amp;od_receipt_coupon=$od_receipt_coupon";
-$g5['title'] = '주문 일괄 삭제 처리 결과';
+
+//goto_url("./orderlist.php?$qstr");
+
+$g5['title'] = '완료 일괄처리 결과';
 include_once(G5_PATH.'/head.sub.php');
 ?>
+
 <div class="new_win">
-<h1><?php echo $g5['title']; ?></h1>
+    <h1><?php echo $g5['title']; ?></h1>
 
     <div class="local_desc01 local_desc">
-        <p>상품 일괄 삭제를  완료했습니다.</p>
+        <p>완료 일괄처리를 완료했습니다.</p>
     </div>
 
     <dl id="excelfile_result">
-        <dt>총 삭제 건수</dt>
+        <dt>총 완료건수</dt>
         <dd><?php echo number_format($total_count); ?></dd>
         <dt class="result_done">완료건수</dt>
         <dd class="result_done"><?php echo number_format($succ_count); ?></dd>
@@ -267,9 +233,11 @@ include_once(G5_PATH.'/head.sub.php');
 
     <div class="btn_confirm01 btn_confirm">
         <button type="button" onclick="opener.location.href='./orderlist.php?<?php echo $qstr?>';window.close();">창닫기</button>
+        
     </div>
 
 </div>
+
 <?php
 include_once(G5_PATH.'/tail.sub.php');
 ?>

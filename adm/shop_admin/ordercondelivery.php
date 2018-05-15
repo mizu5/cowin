@@ -224,7 +224,8 @@ include_once(G5_PATH.'/head.sub.php');
     </dl>
 
     <div class="btn_confirm01 btn_confirm">
-        <button type="button" onclick="opener.location.href='./orderlist.php?<?php echo $qstr?>';window.close();">창닫기</button>
+        <button type="button" onclick="opener.opener.location.href='./orderlist.php?<?php echo $qstr?>';opener.close();window.close();">창닫기</button>
+        
     </div>
 
 </div>

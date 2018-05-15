@@ -289,7 +289,7 @@ AS SO RIGHT OUTER JOIN  {$g5['g5_shop_cart_table']} AS SC ON SC.od_id = SO.od_id
         	od_deposit_name   = '',
         	od_memo           = '$sc_od_memo',
         	od_cart_count     = '$sc_od_qty',
-        	od_cart_price     = '$sc_od_price',
+        	od_cart_price     = '$sc_od_price*$sc_od_qty',
         	od_cart_coupon    = '',
         	od_send_cost      = '',
         	od_send_coupon    = '',
@@ -298,7 +298,7 @@ AS SO RIGHT OUTER JOIN  {$g5['g5_shop_cart_table']} AS SC ON SC.od_id = SO.od_id
         	od_receipt_price  = '$od_receipt_price',
         	od_receipt_point  = '$od_receipt_point',
         	od_bank_account   = '$od_bank_account',
-        	od_receipt_time   = '$od_receipt_time',
+        	od_receipt_time   = '".G5_TIME_YMDHIS."',
         	od_misu           = '0',
         	od_pg             = '$od_pg',
         	od_tno            = '$od_tno',
@@ -369,24 +369,33 @@ AS SO RIGHT OUTER JOIN  {$g5['g5_shop_cart_table']} AS SC ON SC.od_id = SO.od_id
 				, '0'	
 				, '$ct_select_time' 
 				, '{$sm}')";
-        //echo $sql; exit;
-            sql_query($sql);
+            $result = sql_query($sql);
+            if(!$result){
+            	$fail_count++;
+            	$fail_od_id[] = $sc_od;
+            	continue;
+            }
             if($old_od){
            	$sc_qty = 0;
            	$sc_price = 0;
             $sc_qty = (int)$row[od_cart_count]+$sc_od_qty;
-            $sc_price = (int)$row[od_cart_price]+$sc_od_price;
+            $sc_price = (int)$row[od_cart_price]+$sc_od_price*$sc_od_qty;
             $sql  = "update {$g5['g5_shop_order_table']}
             set od_cart_count             = '$sc_qty',
-            od_cart_price           	  =	'$sc_price'
+            od_cart_price           	  =	'$sc_price',
+			od_receipt_price 			= '$sc_price', 
+			od_receipt_time 			= '".G5_TIME_YMDHIS."'
 			where od_id = {$od_id}";
-//            echo $sql;
-//            exit; 
+            //echo $sql; exit; 
             sql_query($sql);
             }
             $succ_count++;
             //print_r2($sql);exit;
         }//if(!$row_du[od_id]){
+        else{       
+        	$dup_it_id[] = $sc_od;
+        	$dup_count ++;
+        }
         } 
     }
 }

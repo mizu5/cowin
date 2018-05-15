@@ -164,7 +164,9 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
     <?php if($od_status == '준비' && $total_count > 0) { ?>    
     <a href="./orderdelivery.php?<?php echo $qstr;?>" id="order_delivery" class="ov_a">배송정보 엑셀출력</a>
     <?php } ?>
-    
+    <?php if($od_status == '배송' && $total_count > 0) { ?>    
+    <a href="./orderconcomplete.php?<?php echo $qstr;?>" id="order_complete" class="ov_a">배송완료</a>
+    <?php } ?>    
     <!-- a href="./orderexcel.php" id="order_delivery" class="ov_order_input">주문등록</a-->
     <?php if( !in_array($od_status,['주문','입금','준비','배송','완료','전체취소','부분취소'])) { ?>       
     <a href="./cartexcel.php?sm=wmp" id="order_wmp_cate" class="ov_wmp_input" title='위메프 주문 전용'><i class="fa fa-file-excel-o fa-lg" aria-hidden="true"></i> 위메프 주문</a>
@@ -207,9 +209,9 @@ if(!sql_query(" select mb_id from {$g5['g5_shop_order_delete_table']} limit 1 ",
 <div>
     <strong>소셜마켓</strong>
     <input type="checkbox" name="od_wm" value="Y" id="od_wm" <?php echo get_checked($od_wm, 'Y'); ?>>
-    <label for="od_misu01">위메프</label>
+    <label for="od_wm">위메프</label>
     <input type="checkbox" name="od_tm" value="Y" id="od_tm" <?php echo get_checked($od_tm, 'Y'); ?>>
-    <label for="od_misu02">티몬</label>    
+    <label for="od_tm">티몬</label>    
 </div>
 <div>
     <strong>주문상태</strong>
@@ -610,14 +612,21 @@ $(function(){
         var opt = "width=600,height=450,left=10,top=10";
         window.open(this.href, "win_excel", opt);
         return false;
-    });   
+    });
+    // 엑셀배송처리창
+    $("#order_complete").on("click", function() {
+        var opt = "width=600,height=450,left=10,top=10";
+        window.open(this.href, "win_complete", opt);
+        return false;
+    });    
     // 삭제처리
     $("#order_delete").on("click", function() {
         var opt = "width=600,height=450,left=10,top=10";
         var input = confirm('<?php echo "주문내역: ".number_format($total_count);?>건 / <?php echo '주문상품: '.number_format($total_c_count) ?>건 을 삭제하시겠습니까?');
         if(input){window.open(this.href, "win_delete", opt);}
         return false;
-    });       
+    });    
+    
 });
 
 function set_date(today)
